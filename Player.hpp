@@ -9,16 +9,20 @@
 #include<string>
 #include<vector>
 
-int minmax(bool *board, int depth, bool mm);
+extern unsigned long long board_searched; // for counting the number of board searched
 
 class Player {
 public:
-    Player(bool first_player);
+    explicit Player(bool first_player);
     Player(std::string name, bool first_player);
-    void virtual getMove(bool *board);
-    std::string virtual getName()const;
-    void virtual increaseScore();
-    int virtual getScore();
+
+    [[maybe_unused]] void virtual getMove(bool *board);
+
+    [[maybe_unused]] [[nodiscard]] std::string virtual getName()const;
+
+    [[maybe_unused]] void virtual increaseScore();
+
+    [[maybe_unused]] int virtual getScore();
 
 private:
     std::string _name_;
@@ -28,10 +32,11 @@ private:
 
 class BotPlayer:public Player{
 public:
-    BotPlayer(bool first_player);
-    void getMove(bool *board);
+    explicit BotPlayer(bool first_player);
+
+    [[maybe_unused]] void getMove(bool *board) override;
 private:
-    int _score_ = 0;
+    [[maybe_unused]] int _score_ = 0;
     bool _first_player_ = false;
 };
 #endif //TIC_TAC_TOE_BOARD_H

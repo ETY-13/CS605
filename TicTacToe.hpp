@@ -109,8 +109,8 @@ public:
 private:
     Player1 _p1_;
     Player2 _p2_;
-    bool _board_[64] = {};
-    bool _savedBoard_[32][64] ={};
+    bool _board_[53] = {};
+    bool _savedBoard_[26][53] ={};
     bool _saveGame_ = false;
     int _saveIter_ = 0;
 };

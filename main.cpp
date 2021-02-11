@@ -6,7 +6,6 @@
 // for a Tic Tac Toe game.
 
 #include "TicTacToe.hpp"
-
 #include <iostream>
 using std::cout;
 using std::cin;
@@ -21,19 +20,18 @@ using std::transform;
 template<typename P1, typename P2>
 void start(P1 player1, P2 player2){
     while(true) {
-        cout<<"Do you want to record and save the game play for later? Enter 'Y' for yes"<<endl;
+        cout<<"\nDo you want to record and save the game play for later? Enter 'Y' for yes"<<endl;
         string answer;
-        cin.ignore();
+
         getline(cin,answer);
         transform(answer.begin(), answer.end(), answer.begin(),::tolower);
 
         if(answer=="y" || answer == "yes"){
-            cout<<"Enter a name for the text file (exclude .txt): ";
+            cout<<"\nEnter a name for the text file (exclude .txt): ";
             getline(cin, answer);
             if(answer ==""){
                 answer = "TicTacToe_Game_Saved";
             }
-
             TicTacToe game{player1, player2,true};
             game.play();
             game.saveGame(answer +".txt");
@@ -42,18 +40,17 @@ void start(P1 player1, P2 player2){
             TicTacToe game{player1, player2};
             game.play();
         }
-
-        cout<<"Do you want to Play again, with the same opponent? Enter 'Y' to play or anything else to quit."<<endl;
+        cout<<"\nDo you want to Play again, with the same opponent? Enter 'Y' to play or anything else to quit."<<endl;
         char ans;
         cin >> ans;
         ans = tolower(ans);
 
         if(ans=='y'){
+            cin.ignore();
             continue;
         }
         break;
     }
-
 }
 
 int main() {
@@ -61,7 +58,7 @@ int main() {
     while (true) {
         cout << "This is a 5x5 tic tac toe game program. Your options are as below: " << endl;
         cout << "Enter: 'Play' to play " << endl;
-        cout << "Enter: 'Playback' to playback a saved game " << endl<<endl;
+        cout << "Enter: 'Playback' to playback a saved game " << endl;
         getline(cin, option);
         transform(option.begin(), option.end(), option.begin(),::tolower);
         if(option =="play" || option =="playback"){
@@ -77,7 +74,6 @@ int main() {
             BotPlayer player1{true};
 
             cout << "\nEnter Player2 name: ";
-            string name;
             getline(cin, name);
             if (name.empty()) {
                 BotPlayer player2{false};
@@ -87,9 +83,8 @@ int main() {
                 start(player1, player2);
             }
         } else {
-            Player player1{"name", true};
+            Player player1{name, true};
             cout << "\nEnter Player2 name: ";
-            string name;
             getline(cin, name);
             if (name.empty()) {
                 BotPlayer player2{false};
@@ -98,7 +93,6 @@ int main() {
                 Player player2{name, false};
                 start(player1, player2);
             }
-
         }
     }
     else{
@@ -143,7 +137,6 @@ int main() {
                     }
                     cout << endl;
                 }
-
                 if(pos==50){
                     pos =0;
                 }

@@ -66,7 +66,7 @@ int main() {
         }
     }
     if(option == "play") {
-        cout << "Choosing Players. Leave the player's name blank if you want to play with a bot." << endl;
+        cout << "Choosing Players. Leave the player's name blank if you want to play against a bot." << endl;
         cout << "Enter Player1 name: ";
         string name;
         getline(cin, name);

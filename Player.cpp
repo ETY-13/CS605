@@ -213,7 +213,7 @@ auto eval(const bool *b)->int{
     return value;
 }
 
-int minmax(bool *board, int f_or_s, int depth, bool mm){
+int minimax(bool *board, int f_or_s, int depth, bool mm){
     board_searched +=1;
     int value = eval(board) * f_or_s;
     if (value >= 20 || value <= -20) {
@@ -235,7 +235,7 @@ int minmax(bool *board, int f_or_s, int depth, bool mm){
         for (auto i = start; i <end; i++) {
             if (!(board[i] || board[i+op_start])) {
                 board[i] = 1;
-                int score = minmax(board, f_or_s, depth - 1, !mm) ;
+                int score = minimax(board, f_or_s, depth - 1, !mm) ;
                 value = max(value, score);
                 board[i] = 0;
             }
@@ -255,7 +255,7 @@ int minmax(bool *board, int f_or_s, int depth, bool mm){
         for (auto i = start; i <end; i++) {
             if (!(board[i] || board[i+op_start])) {
                 board[i] = 1;
-                int score = minmax(board, f_or_s, depth - 1, !mm);
+                int score = minimax(board, f_or_s, depth - 1, !mm);
                 value = min(value, score );
                 board[i] = 0;
             }
@@ -362,11 +362,9 @@ Player::Player(string name, bool first_player): _name_(name), _first_player_(fir
 
         if (!board[o_pos] && !board[x_pos]) {
             if(_first_player_) {
-                cout << x_pos << endl;
                 board[x_pos] = 1;
             }
             else {
-                cout << o_pos << endl;
                 board[o_pos] = 1;
             }
             break;
@@ -416,7 +414,7 @@ BotPlayer::BotPlayer(bool first_palyer):Player(first_palyer),_first_player_(firs
 
         if (!(board[i] || board[op_start + i])) {
             board[i] = 1;
-            int mov_val = max(mov_val,minmax(board, turn, 6, false));
+            int mov_val = max(mov_val, alpha_beta(board, turn, 6, false,-1000,1000));
             if (mov_val > best) {
                 r = i;
                 best = mov_val;
@@ -426,7 +424,7 @@ BotPlayer::BotPlayer(bool first_palyer):Player(first_palyer),_first_player_(firs
     }
 
     auto search_end= clock();
-    cout<<"Number of Board Searched: "<<board_searched<<" Search Time: "
+    cout<<"Number of Board Searched: "<<board_searched<<", Search Time: "
     <<(search_end - search_start)/CLOCKS_PER_SEC<<" sec"<<endl;
 
     if(best >=20){

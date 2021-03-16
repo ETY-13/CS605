@@ -26,14 +26,14 @@ public:
 
         std::ofstream outfile(file_name);
         bool end = false;
-        for(auto i = 0 ; i < 32; i++){
+        for(auto i = 0 ; i < 26; i++){
             outfile<<"[";
-            for(auto j = 0; j < 50; j++){
+            for(auto j = 0; j < 26; j++){
                 outfile<<_savedBoard_[i][j];
             }
             outfile<<"]"<<endl;
 
-            if(_savedBoard_[i][50] || _savedBoard_[i][51]){
+            if(_savedBoard_[i][25] !=NULL){
                 break;
             }
         }
@@ -44,25 +44,23 @@ public:
     void printBoard(){
         cout << endl;
         for (auto i = 0; i < 25; i++) {
-            if ( _board_[i]) {
-                cout<<"|_X_|";
+            if (_board_[i] == '\0') {
+                cout << "|___|";
             }
-            else if ( _board_[i + 25]) {
-                cout<<"|_O_|";
-            }
-            else
-            {
-                cout<<("|___|");
+            else {
+                cout << "|_" << _board_[i] << "_|";
             }
 
-            if ((i+1) % 5 == 0) {
-                printf("\n");
+            if ((i + 1) % 5 == 0) {
+                cout << endl;
             }
         }
         cout << endl;
 
     }
     void play() {
+
+
         printBoard();
         while (true) {
 
@@ -73,14 +71,14 @@ public:
                 _saveIter_ +=1;
             }
 
-            if (_board_[50]) {
+            if (_board_[25] =='X') {
                 cout << "Player 1: " << _p1_.getName() << " Won" << endl;
                 break;
-            } else if (_board_[51]) {
+            } else if (_board_[25]=='O') {
 
                 cout << "Player 2: " << _p2_.getName() << " Won" << endl;
                 break;
-            } else if (_board_[52]) {
+            } else if (_board_[25]=='T') {
 
                 cout << "Game Tied" << endl;
                 break;
@@ -92,15 +90,15 @@ public:
                 _saveIter_ +=1;
             }
 
-            if (_board_[50]) {
+            if (_board_[25]=='X') {
                 cout << "Player 1: " << _p1_.getName() << " WON" << endl;
                 _p1_.increaseScore();
                 break;
-            } else if (_board_[51]) {
+            } else if (_board_[25]=='O') {
                 cout << "Player 2: " << _p2_.getName() << " WON" << endl;
                 _p2_.increaseScore();
                 break;
-            } else if (_board_[52]) {
+            } else if (_board_[25]=='T') {
                 cout << "Game Tied" << endl;
                 break;
             }
@@ -109,8 +107,8 @@ public:
 private:
     Player1 _p1_;
     Player2 _p2_;
-    bool _board_[53] = {};
-    bool _savedBoard_[26][53] ={};
+    char _board_[26] ={};
+    char _savedBoard_[26][26] ={};
     bool _saveGame_ = false;
     int _saveIter_ = 0;
 };

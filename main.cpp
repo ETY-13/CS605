@@ -6,16 +6,24 @@
 // for a Tic Tac Toe game.
 
 #include "TicTacToe.hpp"
+#include"MCTS.hpp"
+#include"Player.hpp"
+
 #include <iostream>
 using std::cout;
 using std::cin;
 using std::endl;
+
+#include<memory>
+using std::pair;
 
 #include<string>
 using std::string;
 
 #include<algorithm>
 using std::transform;
+
+#include<time.h>
 
 template<typename P1, typename P2>
 void start(P1 player1, P2 player2){
@@ -53,6 +61,38 @@ void start(P1 player1, P2 player2){
     }
 }
 
+auto getSearchAlg()->pair<char,int>{
+
+    cout << "\nWhat search algorithm would you want for the bot?";
+    cout << "\nAlpha Beta (default)\nMonte Carlo\n";
+    string search_alg;
+    getline(cin, search_alg);
+
+    cout<<"What is the minimum search time (in second) you want for the algorithm? The default is 10 second."<<endl;
+    cout<<"Keep in mind that alpha-beta may take 10 - 20 seconds more."<<endl;
+
+    string search_ans;
+    getline(cin,search_ans);
+    int search_time;
+
+    try{
+        search_time = std::stoi(search_ans);
+        }
+    catch (std::invalid_argument) {
+        search_time = 10;
+    }
+
+    transform(search_alg.begin(), search_alg.end(), search_alg.begin(),::tolower);
+    if (search_alg =="monte carlo"){
+        return {'M',search_time};
+    }
+    else{
+        return {'A',search_time};
+    }
+
+}
+
+
 int main() {
     string option;
     while (true) {
@@ -67,27 +107,34 @@ int main() {
     }
     if(option == "play") {
         cout << "Choosing Players. Leave the player's name blank if you want to play against a bot." << endl;
-        cout << "Enter Player1 name: ";
+        cout << "Enter Player 1 name: ";
         string name;
         getline(cin, name);
         if (name.empty()) {
-            BotPlayer player1{true};
+            auto alg = getSearchAlg();
+            BotPlayer player1{true, alg.first, alg.second};
 
-            cout << "\nEnter Player2 name: ";
+            cout << "\nEnter Player 2 name: ";
             getline(cin, name);
+
             if (name.empty()) {
-                BotPlayer player2{false};
+
+                auto alg = getSearchAlg();
+                BotPlayer player2{false, alg.first, alg.second};
                 start(player1, player2);
+
             } else {
                 Player player2{name, false};
                 start(player1, player2);
             }
+
         } else {
             Player player1{name, true};
             cout << "\nEnter Player2 name: ";
             getline(cin, name);
             if (name.empty()) {
-                BotPlayer player2{false};
+                auto alg = getSearchAlg();
+                BotPlayer player2{false,alg.first, alg.second};
                 start(player1, player2);
             } else {
                 Player player2{name, false};
@@ -96,49 +143,68 @@ int main() {
         }
     }
     else{
-        cout << "Enter the saved file name: ";
+        cout << "Enter the saved file name (exclude .txt): ";
         string filename;
         getline(cin, filename);
+        filename +=".txt";
         std::ifstream infile(filename);
         if (!infile) {
             cout << "File Not Found"<<endl;
         }
         else{
-            bool board[50]={};
             int pos = 0;
+            int moves_only = 0;
+            bool player_turn = 0;
             while (true){
+
                 char in;
                 infile>>in;
                 if(infile.eof())
                     break;
 
-                if(in=='0'){
-                    board[pos] = 0;
-                    pos +=1;
-                }
-                else if(in=='1'){
-                    board[pos] = 1;
-                    pos +=1;
-                }
-                if(in==']') {
-                    cout << endl;
-                    for (auto i = 0; i < 25; i++) {
-                        if (board[i]) {
-                            cout << "|_X_|";
-                        } else if (board[i + 25]) {
-                            cout << "|_O_|";
-                        } else {
-                            cout << ("|___|");
-                        }
+                if(moves_only >24){
+                    switch (in) {
+                        case('X'):
+                            cout<<"\nX Win";
+                            break;
+                        case('O'):
+                            cout<<"\nO Win";
+                            break;
+                        case('T'):
+                            cout<<"\nGame Tied";
+                            break;
+                        default:
+                            cout<<"Player "<<(player_turn?'O':'X')<<" moved.";
+                            break;
+                    };
 
-                        if ((i + 1) % 5 == 0) {
-                            printf("\n");
+                    moves_only = 0;
+                    player_turn = !player_turn;
+                    auto timer_start = clock()/CLOCKS_PER_SEC;
+                    while(true){
+                        auto timer_stop = clock()/CLOCKS_PER_SEC;
+                        if((timer_stop - timer_start) > 1){
+                            break;
                         }
                     }
-                    cout << endl;
+                    continue;
                 }
-                if(pos==50){
-                    pos =0;
+                if(in == NULL){
+                    cout<<"|___|";
+                    pos+=1;
+                    moves_only +=1;
+                }
+                else if(!(in =='[' || in ==']')){
+                    cout<<"|_"<<in<<"_|";
+                    pos+=1;
+                    moves_only +=1;
+                }
+                if(pos >4){
+                    cout<<endl;
+                    pos = 0;
+                }
+                if(in ==']' || in =='['){
+                    cout<<endl;
                 }
             }
         }

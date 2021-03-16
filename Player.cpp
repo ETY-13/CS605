@@ -5,6 +5,8 @@
 // A ource file that contain the defintion for class Player
 
 #include"Player.hpp"
+#include"MCTS.hpp"
+
 #include<string>
 using std::string;
 #include<iostream>
@@ -21,11 +23,31 @@ using ::clock;
 
 unsigned long long board_searched = 0;
 
-auto eval(const bool *b)->int{
+auto eval(const char *board)->int{
 
     int value = 0;
 
-    auto checkPieceLine = [&value](int x_taken, int o_taken){
+    int x_win = 0;
+    int o_win = 0;
+    int x_taken = 0;
+    int o_taken = 0;
+
+    auto checkmove = [&x_win, &o_win](char move) {
+        if (move == 'X') {
+            x_win += 1;
+            o_win = 0;
+        }
+        else if (move == 'O') {
+            x_win = 0;
+            o_win += 1;
+        }
+        else {
+            x_win = 0;
+            o_win = 0;
+        }
+    };
+
+    auto checkPieceLine = [&value](int x_taken, int o_taken) {
         if (x_taken >= 3) {
             value += 3;
         }
@@ -46,176 +68,155 @@ auto eval(const bool *b)->int{
         }
     };
 
-    for (auto i = 0; i < 50; i+=5) {
-
-        int win = 0;
-        int x_taken = 0;
-        int o_taken = 0;
-
-        // Horizontal check
-        for (auto j = i; j < i+5; j++) {
-            if (b[j]) {
-                win += 1;
+    for (auto i = 0; i < 25; i += 5) {
+        x_win = 0;
+        o_win = 0;
+        x_taken = 0;
+        o_taken = 0;
+        for (auto j = i; j < i + 5; j++) {
+            checkmove(board[j]);
+            // check for wins
+            if (x_win >= 4) {
+                return 20;
             }
-            else {
-                win = 0;
+            else if (o_win >= 4) {
+                return -20;
             }
 
-            // Check the number of X and O pieces
-            // in each horizontal line
-            if (j<25 && b[j]) {
+            if (board[j] == 'X') {
                 if (j % 5 > 0 && j % 5 < 4) {
                     o_taken = -5;
                 }
                 x_taken += 1;
             }
-            else if (j<25 && b[j+25]) {
+            else if (board[j] == 'O') {
                 if ((j % 5 > 0 && j % 5 < 4)) {
                     x_taken = -5;
                 }
                 o_taken += 1;
             }
-
-            // check for wins
-            if (i < 25 && win >= 4) {
-                return 20;
-            }
-            else if (i >= 25 && win >= 4) {
-                return -20;
-            }
         }
-        checkPieceLine(x_taken, o_taken);
+       checkPieceLine(x_taken, o_taken);
     }
 
     // Vertical Check
     for (auto i = 0; i < 5; i++) {
 
-        int ver_x_win = 0;
-        int ver_o_win = 0;
-
-        int x_taken = 0;
-        int o_taken = 0;
+        x_win = 0;
+        o_win = 0;
+        x_taken = 0;
+        o_taken = 0;
 
         for (auto j = 0; j < 25; j += 5) {
 
-            if (b[j + i]) {
-                ver_x_win += 1;
+            // check for wins
+            checkmove(board[j + i]);
+            if (x_win >= 4) {
+                return 20;
+            }
+            else if (o_win >= 4) {
+                return -20;
+            }
+
+            // Check for line pieces
+            if (board[j + i] == 'X') {
                 x_taken += 1;
-
-                if (ver_x_win >= 4) {
-                    return 20;
-                }
                 if (j > 0 && j < 20) {
-                    o_taken = - 5;
+                    o_taken = -5;
                 }
             }
-            else {
-                ver_x_win = 0;
-            }
-
-            if (b[25 + j + i]) {
-                ver_o_win += 1;
+            else if (board[j + i] == 'O') {
                 o_taken += 1;
-
-                if (ver_o_win >= 4) {
-                    return -20;
-                }
                 if (j > 0 && j < 20) {
-
                     x_taken = -5;
                 }
             }
-            else {
-                ver_o_win = 0;
-            }
         }
-        if (x_taken >= 3) {
-            value += 3;
-        }
-        checkPieceLine(x_taken, o_taken);
+       checkPieceLine(x_taken, o_taken);
     }
 
     // Left diagonal Check
-    int left_di_x_win = 0;
-    int left_di_o_win = 0;
-    int x_taken = 0;
-    int o_taken = 0;
+    x_win = 0;
+    o_win = 0;
+    x_taken = 0;
+    o_taken = 0;
 
     for (auto i = 0; i < 25; i += 6) {
 
-        if (b[i]) {
-            left_di_x_win += 1;
+        // check for wins
+        checkmove(board[i]);
+        if (x_win >= 4) {
+            return 20;
+        }
+        else if (o_win >= 4) {
+            return -20;
+        }
+        if (board[i] == 'X') {
             x_taken += 1;
-            if (left_di_x_win >= 4) {
-                return 20;
-            }
             if (i == 6 || i == 12 || i == 18) {
                 o_taken = -5;
             }
         }
-        else {
-            left_di_x_win = 0;
-        }
-
-        if (b[49 - i]) {
-            left_di_o_win += 1;
+        else if (board[i] == 'O') {
             o_taken += 1;
-            if (left_di_o_win >= 4) {
-                return -20;
-            }
-            if (i ==6||i==12||i==18) {
+            if (i == 6 || i == 12 || i == 18) {
                 x_taken = -5;
             }
         }
-        else {
-            left_di_o_win = 0;
-        }
     }
-    checkPieceLine(x_taken, o_taken);
+   checkPieceLine(x_taken, o_taken);
 
-    // Right diagonal check
-    int right_di_x_win = 0;
-    int right_di_o_win = 0;
-
+    // check right-daigonal
+    x_win = 0;
+    o_win = 0;
     x_taken = 0;
     o_taken = 0;
 
     for (auto i = 4; i <= 20; i += 4) {
-        if (b[i]) {
-            right_di_x_win += 1;
+        // check for wins
+        checkmove(board[i]);
+        if (x_win >= 4) {
+            return 20;
+        }
+        else if (o_win >= 4) {
+            return -20;
+        }
+
+        if (board[i] == 'X') {
             x_taken += 1;
-            if (right_di_x_win >= 4) {
-                return 20;
-            }
             if (i == 8 || i == 12 || i == 16) {
                 o_taken = -5;
             }
         }
-        else {
-            right_di_x_win = 0;
-        }
-        if (b[49 - i]) {
-            right_di_o_win += 1;
+        else if (board[i] == 'O') {
             o_taken += 1;
-
-            if (right_di_o_win >= 4) {
-                return -20;
-            }
             if (i == 8 || i == 12 || i == 16) {
                 x_taken = -5;
             }
         }
-        else {
-            right_di_o_win = 0;
-        }
+
     }
     checkPieceLine(x_taken, o_taken);
+
     return value;
 }
+auto checkTied(const char * board)->bool{
 
-int minimax(bool *board, int f_or_s, int depth, bool mm){
+    for(auto i = 0; i < 25; i++){
+        if(board[i] ==NULL){
+            return false;
+        }
+    }
+    return true;
+}
+
+
+int minimax(char *board, bool first_player, int depth, bool mm){
     board_searched +=1;
-    int value = eval(board) * f_or_s;
+    int value = eval(board);
+    if(!first_player){
+        value = value *-1;
+    }
     if (value >= 20 || value <= -20) {
         return value + depth;
     }
@@ -223,41 +224,36 @@ int minimax(bool *board, int f_or_s, int depth, bool mm){
     if (depth == 0) {
         return value;
     }
+
     if (mm) {
-        int start = 0;
-        int end = 25;
-        int op_start = 25;
-        if (f_or_s == -1) {
-            start = 25;
-            end = 50;
-            op_start = -25;
-        }
-        for (auto i = start; i <end; i++) {
-            if (!(board[i] || board[i+op_start])) {
-                board[i] = 1;
-                int score = minimax(board, f_or_s, depth - 1, !mm) ;
+        for (auto i = 0; i <25; i++) {
+            if (!(board[i] =='X' || board[i] =='O')) {
+
+                if(first_player){
+                    board[i] ='X';
+                }else {
+                    board[i] = 'O';
+                }
+                int score = minimax(board, !first_player, depth - 1, !mm) ;
                 value = max(value, score);
-                board[i] = 0;
+                board[i] = NULL;
             }
         }
         return value;
     }
     else {
-        int start = 25;
-        int end = 50;
-        int op_start = -25;
-        if (f_or_s == -1) {
-            start = 0;
-            end = 25;
-            op_start = 25;
-        }
 
-        for (auto i = start; i <end; i++) {
-            if (!(board[i] || board[i+op_start])) {
-                board[i] = 1;
-                int score = minimax(board, f_or_s, depth - 1, !mm);
+        for (auto i = 0; i <25; i++) {
+            if (!(board[i] =='X' || board[i] =='O')) {
+
+                if(first_player){
+                    board[i] = 'X';
+                }else {
+                    board[i] = 'O';
+                }
+                int score = minimax(board, !first_player, depth - 1, !mm);
                 value = min(value, score );
-                board[i] = 0;
+                board[i] = NULL;
             }
 
         }
@@ -265,30 +261,30 @@ int minimax(bool *board, int f_or_s, int depth, bool mm){
     }
 }
 
-int alpha_beta(bool *board, int f_or_s, int depth, bool mm, int alpha, int beta){
+int alpha_beta(char *board, bool first_player, int reverse_score, int depth, bool mm, int alpha, int beta){
     board_searched +=1;
-    int value = eval(board) * f_or_s;
+    int value = eval(board) * reverse_score;
+
     if (value >=20 || value <=-20) {
-        return value + depth;
+        return value +depth;
     }
     if (depth == 0) {
         return value;
     }
     if (mm) {
-        int start = 0;
-        int end = 25;
-        int op_start = 25;
-        if (f_or_s == -1) {
-            start = 25;
-            end = 50;
-            op_start = -25;
-        }
-        for (auto i = start; i <end; i++) {
-            if (!(board[i] || board[i+op_start])) {
-                board[i] = 1;
-                value = max(value, alpha_beta(board, f_or_s, depth - 1, !mm, alpha, beta));
+
+        for (auto i = 0; i <25; i++) {
+            if (!(board[i] =='X' || board[i] =='O')) {
+                if(first_player){
+                    board[i] = 'X';
+                }
+                else{
+                    board[i] ='O';
+                }
+
+                value = max(value, alpha_beta(board, !first_player, reverse_score, depth-1,!mm, alpha, beta));
                 alpha = max(alpha, value);
-                board[i] = 0;
+                board[i] = NULL;
                 if(alpha >=beta){
                     break;
                 }
@@ -297,20 +293,18 @@ int alpha_beta(bool *board, int f_or_s, int depth, bool mm, int alpha, int beta)
         return value;
     }
     else {
-        int start = 25;
-        int end = 50;
-        int op_start = -25;
-        if (f_or_s == -1) {
-            start = 0;
-            end = 25;
-            op_start = 25;
-        }
-        for (auto i = start; i <end; i++) {
-            if (!(board[i] || board[i+op_start])) {
-                board[i] = 1;
-                value = min(value, alpha_beta(board, f_or_s, depth - 1, !mm, alpha, beta) );
+
+        for (auto i = 0; i <25; i++) {
+            if (!(board[i] =='X' || board[i] =='O')) {
+                if(first_player){
+                    board[i] = 'X';
+                }else{
+                    board[i] ='O';
+                }
+
+                value = min(value, alpha_beta(board, !first_player, reverse_score,depth-1, !mm, alpha, beta) );
                 beta = min(beta, value);
-                board[i] = 0;
+                board[i] = NULL;
                 if(alpha >=beta){
                     break;
                 }
@@ -319,7 +313,6 @@ int alpha_beta(bool *board, int f_or_s, int depth, bool mm, int alpha, int beta)
         return value;
     }
 }
-
 
 Player::Player(bool first_player):_first_player_(first_player) {}
 Player::Player(string name, bool first_player): _name_(name), _first_player_(first_player){}
@@ -328,15 +321,9 @@ Player::Player(string name, bool first_player): _name_(name), _first_player_(fir
     return _name_;
 }
 
-[[maybe_unused]] void Player::getMove(bool *board) {
+[[maybe_unused]] void Player::getMove(char *board) {
 
-    bool tied = true;
-    for(auto i = 0; i < 25; i ++){
-        if(!(board[i] || board[25+i])){
-            tied = false;
-            break;
-        }
-    }
+    bool tied = checkTied(board);
 
     while (!tied) {
         cout<<_name_<<" Turn."<<endl;
@@ -357,15 +344,14 @@ Player::Player(string name, bool first_player): _name_(name), _first_player_(fir
             continue;
         }
 
-        int o_pos = 49 - 24 + (row - 1) * 4 + (row - 1) + (col - 1);
-        int x_pos = (row - 1) * 4 + (row - 1) + (col - 1);
+        int move = 5 * (row - 1) + (col - 1);
 
-        if (!board[o_pos] && !board[x_pos]) {
+        if (!(board[move] =='X' || board[move] =='O')) {
             if(_first_player_) {
-                board[x_pos] = 1;
+                board[move] = 'X';
             }
             else {
-                board[o_pos] = 1;
+                board[move] = 'O';
             }
             break;
         }
@@ -374,12 +360,12 @@ Player::Player(string name, bool first_player): _name_(name), _first_player_(fir
     int score = eval(board);
 
     if(score >=20){
-       board[50] = 1;
+       board[25] = 'X';
     }else if(score <=-20){
-        board[51] = 1;
+        board[25] = 'O';
     }
     else if(tied){
-        board[52] = 1;
+        board[25] = 'T';
     }
 }
 
@@ -392,54 +378,100 @@ Player::Player(string name, bool first_player): _name_(name), _first_player_(fir
 }
 
 BotPlayer::BotPlayer(bool first_palyer):Player(first_palyer),_first_player_(first_palyer) {}
+BotPlayer::BotPlayer(bool first_palyer, char search_alg, int search_time):Player(first_palyer),
+            _first_player_(first_palyer),search_alg(search_alg),_search_time_(search_time) {}
 
-[[maybe_unused]] void BotPlayer::getMove(bool *board) {
+void do_alpha_beta_search(char *board, bool first_player, int search_time){
+
     int best = -100;
     int r = -1;
-    int turn = 1;
-    int start = 0;
-    int end = 25;
-    int op_start = 25;
+    int reverse_score = 1;
+    auto search_start= clock()/CLOCKS_PER_SEC;
+    auto search_end= clock()/CLOCKS_PER_SEC;
+    int search_depth = 7;
 
-    if (!_first_player_) {
-        turn = -1;
-        start = 25;
-        op_start = -25;
-        end = 50;
-    }
+    while((search_end - search_start) < search_time) {
+        board_searched = 0;
+        for (auto i = 0; i < 25; i++) {
 
-    auto search_start= clock();
-
-    for (auto i =start; i < end; i++) {
-
-        if (!(board[i] || board[op_start + i])) {
-            board[i] = 1;
-            int mov_val = max(mov_val, alpha_beta(board, turn, 6, false,-1000,1000));
-            if (mov_val > best) {
-                r = i;
-                best = mov_val;
+            if (!(board[i] == 'X' || board[i] == 'O')) {
+                if (first_player) {
+                    board[i] = 'X';
+                } else {
+                    board[i] = 'O';
+                    reverse_score = -1;
+                }
+                int mov_val = max(mov_val, alpha_beta(board, !first_player, reverse_score,
+                                search_depth, false, -1000, 1000));
+                if (mov_val > best) {
+                    r = i;
+                    best = mov_val;
+                }
+                board[i] = NULL;
             }
-            board[i] = 0;
         }
+        search_depth +=1;
+        search_end= clock()/CLOCKS_PER_SEC;
     }
 
-    auto search_end= clock();
-    cout<<"Number of Board Searched: "<<board_searched<<", Search Time: "
-    <<(search_end - search_start)/CLOCKS_PER_SEC<<" sec"<<endl;
+    cout<<"Number of Board Evaluated (Minimax-Alpha-Beta): "<<board_searched<<", Search Time: "
+        <<(search_end - search_start)<<" sec"<<endl;
 
     if(best >=20){
-        if(_first_player_){
-            board[50] = 1;
+        if(first_player){
+            board[25] = 'X';
         }
         else {
-            board[51] = 1;
+            board[25] = 'O';
         }
     }
     if (r==-1) {
-        board[52] = 1;
+        board[25] = 'T';
     }
     else{
-        board[r] = 1;
+        if(first_player) {
+            board[r] = 'X';
+        }else{
+            board[r] ='O';
+        }
     }
+}
+
+void do_mcts(char *board, bool first_player, int search_time){
+
+    board_searched = 0;
+    if(checkTied(board)){
+        board[25] ='T';
+    }
+    else {
+        MCTS mcts(board, first_player, true);
+        int move = mcts.getmove(0,search_time);
+        if (first_player) {
+            board[move] = 'X';
+        } else {
+            board[move] = 'O';
+        }
+
+        cout<<"Number of Board Evaluated (MCTS): "<<board_searched<<", Search Time: "
+            <<search_time<<" sec"<<endl;
+
+        int score = eval(board);
+        if (score >= 20) {
+            board[25] = 'X';
+        } else if (score <= -20) {
+            board[25] = 'O';
+        }
+    }
+}
+
+[[maybe_unused]] void BotPlayer::getMove(char *board) {
+    if(search_alg == 'A'){
+        do_alpha_beta_search(board, _first_player_, _search_time_);
+    }
+
+    if(search_alg =='M'){
+        do_mcts(board, _first_player_, _search_time_);
+    }
+
 }
 
